@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+        :root {
+            --theme-color: #e8b4b8; /* Rosa palo base */
+            --theme-dark: #d2799c; /* Rosa más oscuro para contrastes */
+            --bg-color: #fdf6f7;
+            --text-color: #2d3436;
+            --card-bg: #ffffff;
+            --correct-color: #2ecc71;
+            --incorrect-color: #ff3b3b; /* Rojo vibrante para errores */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--theme-dark);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        }
+
+        .screen-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .categories-grid {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            width: 200px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid transparent;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--theme-color);
+        }
+
+        .category-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .category-name {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .play-menu {
+            margin-top: 20px;
+            padding-top: 30px;
+            border-top: 2px dashed #e8b4b8;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .primary-btn {
+            background-color: var(--theme-dark);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(210, 121, 156, 0.4);
+        }
+
+        .primary-btn:hover {
+            transform: scale(1.05);
+            background-color: #c06587;
+        }
+
+        .action-btn {
+            background-color: white;
+            color: var(--theme-dark);
+            border: 2px solid var(--theme-dark);
+            padding: 10px 20px;
+            font-size: 1.1em;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--theme-dark);
+            color: white;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #636e72;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-bottom: 20px;
+            align-self: flex-start;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            color: var(--theme-dark);
+        }
+
+        .flashcard-area {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 400px;
+            height: 450px;
+            margin-bottom: 30px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 8px solid var(--theme-color);
+        }
+
+        .flashcard:active {
+            transform: scale(0.98);
+        }
+
+        .card-image-container {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .card-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.2s;
+        }
+        
+        .card-image:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .animate-floating {
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.15));
+        }
+
+        .card-word {
+            font-size: 2.5em;
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .card-def {
+            font-size: 1.1em;
+            color: #636e72;
+            line-height: 1.4;
+        }
+
+        .progress-indicator {
+            margin-top: 15px;
+            color: #b2bec3;
+            font-weight: 600;
+        }
+
+        .activity-area {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .activity-title {
+            font-size: 1.8em;
+            color: var(--theme-dark);
+            margin-bottom: 20px;
+        }
+
+        .input-box {
+            width: 80%;
+            padding: 15px 20px;
+            font-size: 1.5em;
+            border: 3px solid #dfe6e9;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-box:focus {
+            border-color: var(--theme-color);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1px));
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .option-card {
+            background: #f8f9fa;
+            border: 3px solid #dfe6e9;
+            border-radius: 20px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
+        }
+
+        .option-card:hover {
+            border-color: var(--theme-color);
+            background: #fff0f3;
+            transform: scale(1.05);
+        }
+
+        .option-card img, .option-card svg {
+            max-width: 100%;
+            max-height: 100px;
+        }
+
+        .feedback-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            display: none;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .feedback-correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback-incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Ocultar elementos */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Estilo especial para la palabra grande en el nivel 2 */
+        .big-target-word {
+            font-size: 3.5em;
+            color: var(--theme-dark);
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Market garden 🧺</h1>
+        <p style="color: #636e72; font-size: 1.2em;">Learn vocabulary, listen, and play!</p>
+    </header>
+
+    <div id="homeScreen" class="screen-container">
+        <h2 style="margin-bottom: 30px; color: var(--theme-dark);">1. Learn with Flashcards</h2>
+        <div class="categories-grid">
+            <div class="category-card fruits" onclick="selectCategory('fruits')">
+                <div class="category-icon">🍎</div>
+                <div class="category-name">Fruits</div>
+            </div>
+            <div class="category-card vegetables" onclick="selectCategory('vegetables')">
+                <div class="category-icon">🥕</div>
+                <div class="category-name">Vegetables</div>
+            </div>
+        </div>
+
+        <div class="play-menu">
+            <h2 style="color: var(--theme-dark); margin-bottom: 10px;">2. Test Your Memory</h2>
+            <p style="color: #636e72; font-size: 1.1em;">Choose a challenge to start playing!</p>
+            <div class="btn-group">
+                <button class="action-btn" onclick="startActivityDirectly('fruits')">🍎 Play Fruits</button>
+                <button class="action-btn" onclick="startActivityDirectly('vegetables')">🥕 Play Veggies</button>
+                <button class="primary-btn" onclick="startActivityDirectly('mixed')">🌟 Play Mixed</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flashcardScreen" class="screen-container hidden">
+        <button class="back-btn" onclick="goHome()">← Menu</button>
+        
+        <div class="flashcard-area">
+            <div class="flashcard" id="currentCard">
+                <div class="card-image-container" onclick="pronounceWord()">
+                    <img id="cardImage" class="card-image" src="" alt="Vocabulary Image">
+                </div>
+                <div class="card-word" id="cardWord">Word</div>
+                <div class="card-def" id="cardDef">Definition goes here</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <button class="primary-btn" id="nextCardBtn" onclick="nextWord()">Next Card →</button>
+        </div>
+        <div class="progress-indicator" id="cardProgress">1 / 10</div>
+    </div>
+
+    <div id="activityIntroScreen" class="screen-container hidden">
+        <div class="activity-area">
+            <h2 id="activityIntroTitle" class="activity-title" style="font-size: 2.5em;">Great Job! 🎉</h2>
+            <p style="font-size: 1.3em; color: #636e72; margin: 20px 0;">You have reached the activity section. Turn on your volume!</p>
+            
+            <div style="text-align: left; background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                <p><strong>Level 1:</strong> Listen and type the correct word.</p>
+                <p><strong>Level 2:</strong> Read the word and select the matching image.</p>
+            </div>
+
+            <button class="primary-btn" onclick="startActivity()">Start Game 🚀</button>
+            <br><br>
+            <button class="back-btn" style="margin:0 auto; display: block;" onclick="goHome()">← Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="level1Screen" class="screen-container hidden">
+        <div class="activity-area">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <span style="font-weight: bold; color: var(--theme-dark);">Level 1: Listen & Type</span>
+                <span id="l1Progress" style="color: #636e72;">Question 1/5</span>
+            </div>
+            
+            <div class="card-image-container" style="margin: 0 auto;" onclick="pronounceTarget()">
+                <img id="l1Image" class="card-image" src="" alt="Item">
+            </div>
+            
+            <p style="margin-top: 15px; color: #636e72; cursor: pointer; text-decoration: underline;" onclick="pronounceTarget()">🔊 Listen Again</p>
+            
+            <input type="text" id="l1Input" class="input-box" placeholder="Type the word here..." autocomplete="off">
+            
+            <div id="l1Feedback" class="feedback-box"></div>
+            
+            <div style="margin-top: 20px; height: 60px;">
+                <button id="l1CheckBtn" class="primary-btn" onclick="checkLevel1()">Check Answer</button>
+                <button id="l1TryAgainBtn" class="primary-btn hidden" style="background-color: var(--incorrect-color); box-shadow: 0 5px 15px rgba(255, 59, 59, 0.4);" onclick="resetLevel1Input()">Try Again 🔄</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="level2Screen" class="screen-container hidden">
+        <div class="activity-area">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span style="font-weight: bold; color: var(--theme-dark);">Level 2: Read & Match</span>
+                <span id="l2Progress" style="color: #636e72;">Question 1/5</span>
+            </div>
+            
+            <div class="big-target-word" id="l2Word">WORD</div>
+            <p style="color: #636e72;">Select the correct image</p>
+            
+            <div class="options-grid" id="l2Options">
+                <!-- Opciones se inyectan via JS -->
+            </div>
+            
+            <div id="l2Feedback" class="feedback-box"></div>
+            
+            <div style="margin-top: 20px; height: 60px;">
+                <!-- El botón de Try Again aparecerá aquí si falla -->
+                <button id="l2TryAgainBtn" class="primary-btn hidden" style="background-color: var(--incorrect-color); box-shadow: 0 5px 15px rgba(255, 59, 59, 0.4);" onclick="resetLevel2Options()">Try Again 🔄</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nueva pantalla de Score -->
+    <div id="scoreScreen" class="screen-container hidden">
+        <div class="activity-area">
+            <h2 class="activity-title" style="font-size: 2.5em; color: var(--theme-dark);">Activity Complete! 🎉</h2>
+            <div style="font-size: 4em; font-weight: bold; color: var(--theme-dark); margin: 20px 0;">
+                <span id="finalScoreNumber">0</span> <span style="font-size: 0.5em; color: #b2bec3;">/ 10</span>
+            </div>
+            <p id="scoreMessage" style="font-size: 1.3em; color: #636e72; margin-bottom: 30px;">Great job!</p>
+            <button class="primary-btn" onclick="goHome()">← Back to Menu</button>
+        </div>
+    </div>
+
+    <script>
+        const fruitVocabulary = [
+            { word: "Apple", def: "A round fruit with red or green skin and a whitish interior.", color: "#ff4757", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f34e/512.gif" },
+            { word: "Banana", def: "A long curved fruit that grows in clusters and has soft pulpy flesh.", color: "#eccc68", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f34c.svg", customClass: "animate-floating" },
+            { word: "Orange", def: "A round juicy citrus fruit with a tough bright reddish-yellow rind.", color: "#ffa502", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f34a/512.gif" },
+            { word: "Grapes", def: "A berry, typically green, purple, or black, growing in clusters.", color: "#9b59b6", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f347/512.gif" },
+            { word: "Watermelon", def: "A large melon with a hard, green rind and sweet, watery red flesh.", color: "#ff6b81", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f349/512.gif" },
+            { word: "Pineapple", def: "A large juicy tropical fruit with sweet yellow flesh and rough skin.", color: "#f1c40f", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f34d/512.gif" },
+            { word: "Strawberry", def: "A sweet fleshy red fruit with seeds on the outside.", color: "#e84118", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f353/512.gif" },
+            { word: "Mango", def: "A fleshy, yellowish-red tropical fruit.", color: "#f39c12", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f96d/512.gif" },
+            { word: "Cherry", def: "A small, round stone fruit that is typically bright or dark red.", color: "#c0392b", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f352/512.gif" },
+            { word: "Lemon", def: "A yellow, oval citrus fruit with thick skin and fragrant, acidic juice.", color: "#f6e58d", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f34b/512.gif" },
+            { word: "Pear", def: "A sweet, yellowish-green fruit with a narrow top and wide bottom.", color: "#aadd8f", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f350/512.gif" },
+            { word: "Kiwi", def: "A small fruit with thin brown skin covered with hairs and green flesh.", color: "#8abf41", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f95d/512.gif" },
+            { word: "Blueberry", def: "A small, round, dark blue edible berry.", color: "#4b6584", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1fad0.svg", customClass: "animate-floating" },
+            { word: "Coconut", def: "The large, oval, brown seed of a tropical palm.", color: "#8d6e63", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f965.svg", customClass: "animate-floating" },
+            { word: "Melon", def: "A large, round fruit with sweet, juicy, orange or green flesh.", color: "#f9ca24", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f348/512.gif" }
+        ];
+
+        const vegetableVocabulary = [
+            { word: "Carrot", def: "A long, orange root vegetable.", color: "#e67e22", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f955/512.gif" },
+            { word: "Broccoli", def: "A green vegetable that looks like a miniature tree.", color: "#27ae60", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f966/512.gif" },
+            { word: "Tomato", def: "A glossy red, or occasionally yellow, pulpy edible fruit.", color: "#e74c3c", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f345/512.gif" },
+            { word: "Corn", def: "A cereal plant that yields large grains set in rows on a cob.", color: "#f1c40f", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f33d/512.gif" },
+            { word: "Potato", def: "A starchy plant tuber which is one of the most important food crops.", color: "#d35400", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f954/512.gif" },
+            { word: "Cucumber", def: "A long, green-skinned fruit with watery flesh, eaten as a vegetable.", color: "#2ecc71", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f952/512.gif" },
+            { word: "Onion", def: "A vegetable consisting of a bulb with a strong taste and smell.", color: "#9b59b6", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f9c5/512.gif" },
+            { word: "Bell Pepper", def: "A hollow, fleshy fruit that can be green, red, or yellow.", color: "#e74c3c", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1fad1/512.gif" },
+            { word: "Mushroom", def: "A fleshy, spore-bearing fruiting body of a fungus.", color: "#a04000", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f344/512.gif" },
+            { word: "Garlic", def: "A strong-smelling pungent-tasting bulb, used as a flavoring.", color: "#bdc3c7", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f9c4/512.gif" },
+            { word: "Avocado", def: "A fruit with rough, dark green skin, smooth pale green flesh, and a large seed.", color: "#1e8449", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f951/512.gif" },
+            { word: "Chili Pepper", def: "A small hot-tasting pod of a variety of capsicum.", color: "#c0392b", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f336.svg", customClass: "animate-floating" },
+            { word: "Lettuce", def: "A green leafy vegetable often used in salads.", color: "#7bed9f", image: "https://fonts.gstatic.com/s/e/notoemoji/latest/1f96c/512.gif" },
+            { word: "Sweet Potato", def: "A sweet, orange starchy root vegetable.", color: "#e15f41", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f360.svg", customClass: "animate-floating" },
+            { word: "Peanut", def: "A legume that grows underground, often eaten as a snack.", color: "#eccc68", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f95c.svg", customClass: "animate-floating" },
+            { word: "Olive", def: "A small oval fruit with a hard stone, often treated as a vegetable.", color: "#badc58", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1fad2.svg", customClass: "animate-floating" },
+            { word: "Beans", def: "A seed of a legume plant, used as food.", color: "#8b4513", image: "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1fad8.svg", customClass: "animate-floating" }
+        ];
+
+        let currentVocabulary = [];
+        let categoryName = '';
+        let currentIndex = 0;
+        
+        // Variables de Actividad
+        let activityLevel = 1;
+        let level1Questions = [];
+        let level2Questions = [];
+        let currentActivityIndex = 0;
+        let currentTarget = null;
+        let audioCtx = null;
+        
+        // Nuevas variables para el Score
+        let currentScore = 0;
+        let currentQuestionAttempts = 0;
+
+        function hideAllScreens() {
+            document.querySelectorAll('.screen-container').forEach(el => el.classList.add('hidden'));
+        }
+
+        function goHome() {
+            hideAllScreens();
+            document.getElementById('homeScreen').classList.remove('hidden');
+            speechSynthesis.cancel();
+            document.documentElement.style.setProperty('--theme-color', '#e8b4b8');
+        }
+
+        function selectCategory(category) {
+            categoryName = category;
+            currentVocabulary = category === 'fruits' ? fruitVocabulary : vegetableVocabulary;
+            currentIndex = 0;
+            
+            hideAllScreens();
+            document.getElementById('flashcardScreen').classList.remove('hidden');
+            updateCardUI();
+        }
+
+        function updateCardUI() {
+            const item = currentVocabulary[currentIndex];
+            const card = document.getElementById('currentCard');
+            const img = document.getElementById('cardImage');
+            
+            card.style.borderBottomColor = item.color;
+            document.documentElement.style.setProperty('--theme-color', item.color);
+            
+            img.src = item.image;
+            img.className = 'card-image ' + (item.customClass || ''); // Aplica la animación si es vector
+            
+            document.getElementById('cardWord').innerText = item.word;
+            document.getElementById('cardDef').innerText = item.def;
+            
+            const btn = document.getElementById('nextCardBtn');
+            if (currentIndex === currentVocabulary.length - 1) {
+                btn.innerText = "Finish Cards 🎉";
+                btn.style.backgroundColor = "#2ecc71";
+            } else {
+                btn.innerText = "Next Card →";
+                btn.style.backgroundColor = "var(--theme-dark)";
+            }
+            
+            document.getElementById('cardProgress').innerText = `${currentIndex + 1} / ${currentVocabulary.length}`;
+            pronounceWord();
+        }
+
+        function nextWord() {
+            if (currentIndex < currentVocabulary.length - 1) {
+                currentIndex++;
+                updateCardUI();
+            } else {
+                // Al terminar las flashcards, regresa al menú para darle la opción de elegir qué jugar
+                goHome();
+            }
+        }
+
+        function pronounceWord() {
+            const word = currentVocabulary[currentIndex].word;
+            speakText(word);
+        }
+
+        // --- SISTEMA DE VOZ NATURAL Y AMIGABLE ---
+        let preferredVoice = null;
+
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            // Buscamos voces femeninas que destaquen por ser suaves y naturales
+            // (Aria y Jenny suelen ser las más humanas en navegadores modernos)
+            preferredVoice = voices.find(v => v.name.includes('Microsoft Aria Online')) || 
+                             voices.find(v => v.name.includes('Microsoft Jenny Online')) ||
+                             voices.find(v => v.name.includes('Google US English')) || 
+                             voices.find(v => v.name.includes('Samantha')) || 
+                             voices.find(v => v.name.includes('Victoria')) ||
+                             voices.find(v => v.name.includes('Zira')) || 
+                             voices.find(v => v.lang === 'en-US' && v.name.includes('Female')) ||
+                             voices.find(v => v.lang === 'en-US'); // Opciones de respaldo
+        }
+
+        // Los navegadores cargan las voces de forma asíncrona, así que escuchamos cuando estén listas
+        if ('speechSynthesis' in window) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+            // Intentar cargarlas de inmediato por si ya están disponibles
+            loadVoices(); 
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Configuración para hacerla tenue, amable y equilibrada
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;    // Ritmo relajado y conversacional
+                utterance.pitch = 1.1;   // Intermedio: ni muy grave, ni chillón/agudo
+                utterance.volume = 0.85; // Volumen ligeramente reducido para dar un efecto tenue
+                
+                // Asignar la voz premium si la encontramos
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playCorrectSound() {
+            if(!audioCtx) return;
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, t); // C5
+            osc.frequency.setValueAtTime(659.25, t + 0.1); // E5
+            osc.frequency.setValueAtTime(783.99, t + 0.2); // G5
+            osc.frequency.setValueAtTime(1046.50, t + 0.3); // C6
+            
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+            gain.gain.linearRampToValueAtTime(0, t + 0.5);
+            
+            osc.start(t);
+            osc.stop(t + 0.5);
+        }
+
+        function playIncorrectSound() {
+            if(!audioCtx) return;
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(250, t); 
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.3);
+            
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.3, t + 0.05);
+            gain.gain.linearRampToValueAtTime(0, t + 0.4);
+            
+            osc.start(t);
+            osc.stop(t + 0.4);
+        }
+
+        function startActivityDirectly(type) {
+            initAudio();
+            if (type === 'fruits') {
+                currentVocabulary = [...fruitVocabulary];
+                categoryName = 'fruits';
+            } else if (type === 'vegetables') {
+                currentVocabulary = [...vegetableVocabulary];
+                categoryName = 'vegetables';
+            } else if (type === 'mixed') {
+                currentVocabulary = [...fruitVocabulary, ...vegetableVocabulary];
+                categoryName = 'mixed';
+            }
+
+            hideAllScreens();
+            const intro = document.getElementById('activityIntroScreen');
+            intro.classList.remove('hidden');
+            
+            let titleText = "Great Job! 🎉";
+            if(type === 'fruits') titleText = "Great Job with Fruits! 🍎";
+            if(type === 'vegetables') titleText = "Great Job with Veggies! 🥕";
+            if(type === 'mixed') titleText = "Mixed Challenge! 🏆";
+
+            document.getElementById('activityIntroTitle').innerText = titleText;
+            document.documentElement.style.setProperty('--theme-color', '#d2799c');
+        }
+
+        function startActivity() {
+            hideAllScreens();
+            generateLevels();
+            activityLevel = 1;
+            currentActivityIndex = 0;
+            currentScore = 0; // Reiniciar score al iniciar
+            loadActivityQuestion();
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateLevels() {
+            // Mezclamos el vocabulario actual para que sea aleatorio cada vez
+            let shuffled = shuffleArray([...currentVocabulary]);
+            
+            // Tomamos 5 para Nivel 1 y 5 para Nivel 2
+            level1Questions = shuffled.slice(0, 5);
+            level2Questions = shuffled.slice(5, 10);
+            
+            // Si el vocabulario es muy pequeño, reutilizamos palabras (no debería pasar con la nueva lista)
+            if (level2Questions.length < 5) {
+                let reshuffled = shuffleArray([...currentVocabulary]);
+                level2Questions = reshuffled.slice(0, 5);
+            }
+        }
+
+        function loadActivityQuestion() {
+            currentQuestionAttempts = 0; // Reiniciar intentos por pregunta
+
+            if (activityLevel === 1) {
+                if (currentActivityIndex >= level1Questions.length) {
+                    // Pasar al nivel 2
+                    activityLevel = 2;
+                    currentActivityIndex = 0;
+                    loadActivityQuestion();
+                    return;
+                }
+                
+                currentTarget = level1Questions[currentActivityIndex];
+                hideAllScreens();
+                document.getElementById('level1Screen').classList.remove('hidden');
+                
+                const img = document.getElementById('l1Image');
+                img.src = currentTarget.image;
+                img.className = 'card-image ' + (currentTarget.customClass || '');
+
+                document.getElementById('l1Progress').innerText = `Question ${currentActivityIndex + 1}/5`;
+                document.getElementById('l1Input').value = '';
+                document.getElementById('l1Input').disabled = false;
+                
+                const feedback = document.getElementById('l1Feedback');
+                feedback.style.display = 'none';
+                feedback.className = 'feedback-box';
+                
+                document.getElementById('l1CheckBtn').classList.remove('hidden');
+                document.getElementById('l1TryAgainBtn').classList.add('hidden');
+                
+                setTimeout(pronounceTarget, 500);
+
+            } else if (activityLevel === 2) {
+                if (currentActivityIndex >= level2Questions.length) {
+                    // Mostrar pantalla de score en lugar de regresar al inicio
+                    showScoreScreen();
+                    return;
+                }
+
+                currentTarget = level2Questions[currentActivityIndex];
+                hideAllScreens();
+                document.getElementById('level2Screen').classList.remove('hidden');
+                
+                document.getElementById('l2Word').innerText = currentTarget.word;
+                document.getElementById('l2Progress').innerText = `Question ${currentActivityIndex + 1}/5`;
+                
+                const feedback = document.getElementById('l2Feedback');
+                feedback.style.display = 'none';
+                feedback.className = 'feedback-box';
+                
+                document.getElementById('l2TryAgainBtn').classList.add('hidden');
+
+                generateLevel2Options();
+                speakText("Where is the " + currentTarget.word + "?");
+            }
+        }
+
+        function pronounceTarget() {
+            if (currentTarget) speakText(currentTarget.word);
+        }
+
+        function checkLevel1() {
+            currentQuestionAttempts++; // Sumar un intento
+            const input = document.getElementById('l1Input').value.trim().toLowerCase();
+            const correct = currentTarget.word.toLowerCase();
+            const feedback = document.getElementById('l1Feedback');
+            
+            document.getElementById('l1Input').disabled = true;
+            document.getElementById('l1CheckBtn').classList.add('hidden');
+            
+            if (input === correct) {
+                if (currentQuestionAttempts === 1) {
+                    currentScore++; // Sumar punto solo si acertó al primer intento
+                }
+                playCorrectSound();
+                feedback.innerHTML = `<strong>Excellent! 🎉</strong><br>${currentTarget.def}<br><br><span style="font-size:0.8em; color:gray;">Loading next question...</span>`;
+                feedback.className = 'feedback-box feedback-correct';
+                feedback.style.display = 'block';
+                speakText("Excellent! " + currentTarget.word);
+                
+                // Auto-avanzar si es correcto
+                setTimeout(() => {
+                    currentActivityIndex++;
+                    loadActivityQuestion();
+                }, 3000);
+            } else {
+                playIncorrectSound();
+                feedback.innerHTML = `<strong>It's okay if you don't know yet!</strong><br>The correct spelling is <b>${currentTarget.word}</b>. Let's try again!`;
+                feedback.className = 'feedback-box feedback-incorrect';
+                feedback.style.display = 'block';
+                speakText("It's okay. The word is " + currentTarget.word + ". Try again.");
+                
+                // Mostrar botón de reintento rojo
+                document.getElementById('l1TryAgainBtn').classList.remove('hidden');
+            }
+        }
+
+        function resetLevel1Input() {
+            document.getElementById('l1Input').disabled = false;
+            document.getElementById('l1Input').value = '';
+            document.getElementById('l1Input').focus();
+            document.getElementById('l1CheckBtn').classList.remove('hidden');
+            document.getElementById('l1TryAgainBtn').classList.add('hidden');
+            document.getElementById('l1Feedback').style.display = 'none';
+            pronounceTarget();
+        }
+
+        function generateLevel2Options() {
+            const grid = document.getElementById('l2Options');
+            grid.innerHTML = '';
+            
+            // Generar 2 distractores
+            let options = [currentTarget];
+            let pool = currentVocabulary.filter(item => item.word !== currentTarget.word);
+            pool = shuffleArray(pool);
+            options.push(pool[0]);
+            options.push(pool[1]);
+            
+            options = shuffleArray(options);
+            
+            options.forEach(opt => {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.onclick = () => checkLevel2(opt, card);
+                
+                const img = document.createElement('img');
+                img.src = opt.image;
+                img.className = opt.customClass || ''; // Aplica animación si es vector
+                
+                card.appendChild(img);
+                grid.appendChild(card);
+            });
+        }
+
+        function checkLevel2(selectedItem, cardElement) {
+            currentQuestionAttempts++; // Sumar un intento
+            const feedback = document.getElementById('l2Feedback');
+            
+            // Deshabilitar clics temporales
+            const allCards = document.querySelectorAll('.option-card');
+            allCards.forEach(c => c.style.pointerEvents = 'none');
+            
+            if (selectedItem.word === currentTarget.word) {
+                if (currentQuestionAttempts === 1) {
+                    currentScore++; // Sumar punto solo si acertó al primer intento
+                }
+                playCorrectSound();
+                cardElement.style.borderColor = varThemeColor();
+                cardElement.style.backgroundColor = '#d4edda';
+                
+                feedback.innerHTML = `<strong>Good job! 🌟</strong><br>Yes, that is the ${currentTarget.word}.<br><br><span style="font-size:0.8em; color:gray;">Loading next question...</span>`;
+                feedback.className = 'feedback-box feedback-correct';
+                feedback.style.display = 'block';
+                speakText("Good job! " + currentTarget.word);
+                
+                // Auto-avanzar si es correcto
+                setTimeout(() => {
+                    currentActivityIndex++;
+                    loadActivityQuestion();
+                }, 3000);
+            } else {
+                playIncorrectSound();
+                cardElement.style.borderColor = '#ff3b3b';
+                cardElement.style.opacity = '0.5';
+                
+                feedback.innerHTML = `<strong>Try again!</strong><br>You selected the <b>${selectedItem.word}</b>. Look carefully!`;
+                feedback.className = 'feedback-box feedback-incorrect';
+                feedback.style.display = 'block';
+                speakText("Try again. You selected " + selectedItem.word);
+                
+                // Mostrar botón de reintento rojo
+                document.getElementById('l2TryAgainBtn').classList.remove('hidden');
+            }
+        }
+
+        function resetLevel2Options() {
+            document.getElementById('l2TryAgainBtn').classList.add('hidden');
+            document.getElementById('l2Feedback').style.display = 'none';
+            // Reactivar las opciones
+            const allCards = document.querySelectorAll('.option-card');
+            allCards.forEach(c => {
+                c.style.pointerEvents = 'auto';
+                if (c.style.borderColor !== 'rgb(255, 59, 59)') { 
+                    // Resetear el estado visual, pero dejar marcado en rojo el que se equivocó
+                    c.style.borderColor = '#dfe6e9';
+                    c.style.opacity = '1';
+                }
+            });
+            speakText("Where is the " + currentTarget.word + "?");
+        }
+
+        function varThemeColor() {
+            return getComputedStyle(document.documentElement).getPropertyValue('--correct-color').trim();
+        }
+
+        // Nueva función para mostrar la puntuación final
+        function showScoreScreen() {
+            hideAllScreens();
+            document.getElementById('scoreScreen').classList.remove('hidden');
+            
+            const total = level1Questions.length + level2Questions.length;
+            document.getElementById('finalScoreNumber').innerText = currentScore;
+            
+            const msg = document.getElementById('scoreMessage');
+            if(currentScore === total) {
+                msg.innerText = "Perfect! You're a vocabulary master! 🏆";
+            } else if (currentScore >= total / 2) {
+                msg.innerText = "Good job! Keep practicing to get a perfect score! 🌟";
+            } else {
+                msg.innerText = "Nice try! Let's practice a bit more to improve. 💪";
+            }
+            
+            playCorrectSound(); // Sonido alegre
+            speakText(`You scored ${currentScore} out of ${total}`);
+        }
+
+    </script>
+</body>
+</html>
